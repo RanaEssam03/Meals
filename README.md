@@ -1,5 +1,5 @@
 # Meals
-- A simple Flutter app allows users to browse a list of meals by category, mark meals as favorites, and filter meals by gluten-free, lactose-free, vegetarian, and vegan.
+- A simple Flutter app allows users to browse a list of meals by category, mark meals as favorites, and filter meals by a lot of filters.
 ## Screenshots
 <div>
 <img src ="https://github.com/RanaEssam03/Meals/blob/master/screenshots/Screenshot_1690044161.png" style="width:30%" >
