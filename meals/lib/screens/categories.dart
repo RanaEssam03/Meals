@@ -2,26 +2,48 @@ import 'package:flutter/material.dart';
 import 'package:meals/data/dummy_data.dart';
 import 'package:meals/models/category.dart';
 import 'package:meals/models/meal.dart';
+import 'package:meals/screens/filters.dart';
 
 import 'package:meals/widgets/category_grid_item.dart';
 import 'package:meals/screens/meals.dart';
 
 class CategoriesScreen extends StatelessWidget {
-  const CategoriesScreen({required this.onToggleFavorite, super.key});
+  const CategoriesScreen(
+      {required this.filters, required this.onToggleFavorite, super.key});
 
-  final void Function (Meal meal) onToggleFavorite ; 
+  final void Function(Meal meal) onToggleFavorite;
 
+  final Map<Filter, bool> filters;
+
+  bool _filterMeal(Meal meal) {
+    if (filters[Filter.glutenFree]!) {
+      return meal.isGlutenFree;
+    }
+    if (filters[Filter.lactoseFree]!) {
+      return meal.isLactoseFree;
+    }
+    if (filters[Filter.vegetarian]!) {
+      return meal.isVegetarian;
+    }
+    if (filters[Filter.vegan]!) {
+      return meal.isVegan;
+    }
+    return true;
+  }
 
   void _selectCategory(BuildContext context, Category category) {
     final filteredMeals = dummyMeals
         .where(
-          (meal) => meal.categories.contains(category.id),
+          (meal) => meal.categories.contains(category.id) && _filterMeal(meal),
         )
         .toList();
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (ctx) =>
-            MealsScreen(title: category.title, meals: filteredMeals, onToggleFavorite: onToggleFavorite,),
+        builder: (ctx) => MealsScreen(
+          title: category.title,
+          meals: filteredMeals,
+          onToggleFavorite: onToggleFavorite,
+        ),
       ),
     );
   }

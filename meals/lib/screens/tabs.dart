@@ -5,6 +5,13 @@ import 'package:meals/screens/meals.dart';
 import 'package:meals/screens/filters.dart';
 import 'package:meals/widgets/main_drawer.dart';
 
+const kInitialFilters = {
+  Filter.glutenFree: false,
+  Filter.lactoseFree: false,
+  Filter.vegetarian: false,
+  Filter.vegan: false,
+};
+
 class TabsScreen extends StatefulWidget {
   const TabsScreen({super.key});
 
@@ -13,14 +20,22 @@ class TabsScreen extends StatefulWidget {
 }
 
 class _TabsScreenState extends State<TabsScreen> {
+  final List<Meal> _favoriteMeals = [];
+
   int _selectedIndex = 0;
+  late Map<Filter, bool> _selectedFilters;
+  @override
+  void initState() {
+    _selectedFilters = kInitialFilters;
+
+    super.initState();
+  }
+
   void _selectTab(index) {
     setState(() {
       _selectedIndex = index;
     });
   }
-
-  final List<Meal> _favoriteMeals = [];
 
   void _toggleFavorite(Meal meal) {
     final isExisting = _favoriteMeals.contains(meal);
@@ -29,10 +44,12 @@ class _TabsScreenState extends State<TabsScreen> {
         ScaffoldMessenger.of(context).clearSnackBars();
         if (isExisting) {
           _favoriteMeals.remove(meal);
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("Meal is no longer a favorite!"),
-            duration: Duration(seconds: 1),
-          ));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Meal is no longer a favorite!"),
+              duration: Duration(seconds: 1),
+            ),
+          );
         } else {
           _favoriteMeals.add(meal);
           ScaffoldMessenger.of(context).showSnackBar(
@@ -46,16 +63,24 @@ class _TabsScreenState extends State<TabsScreen> {
     );
   }
 
-  void _selectScreen(String identifier) {
+  void _selectScreen(String identifier) async {
     Navigator.of(context).pop();
 
     if (identifier == 'Filters') {
-      Navigator.of(context).push(
+      final result = await Navigator.of(context).push<Map<Filter, bool>>(
         MaterialPageRoute(
           builder: (context) {
-            return const FiltersScreen();
+            return FiltersScreen(
+              selectedFilters: _selectedFilters,
+            );
           },
         ),
+      );
+
+      setState(
+        () {
+          _selectedFilters = result ?? kInitialFilters;
+        },
       );
     }
   }
@@ -63,6 +88,7 @@ class _TabsScreenState extends State<TabsScreen> {
   @override
   Widget build(BuildContext context) {
     Widget content = CategoriesScreen(
+      filters: _selectedFilters,
       onToggleFavorite: _toggleFavorite,
     );
     String activePageTitle = "Categories";
