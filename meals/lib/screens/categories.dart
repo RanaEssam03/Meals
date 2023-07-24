@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meals/data/dummy_data.dart';
 import 'package:meals/models/category.dart';
 import 'package:meals/models/meal.dart';
+import 'package:meals/providers/filters_provider.dart';
+import 'package:meals/providers/meals_provider.dart';
 import 'package:meals/screens/filters.dart';
 
 import 'package:meals/widgets/category_grid_item.dart';
 import 'package:meals/screens/meals.dart';
 
-class CategoriesScreen extends StatelessWidget {
+class CategoriesScreen extends ConsumerWidget {
   const CategoriesScreen(
-      {required this.filters, required this.onToggleFavorite, super.key});
+      { super.key});
 
-  final void Function(Meal meal) onToggleFavorite;
 
-  final Map<Filter, bool> filters;
 
-  bool _filterMeal(Meal meal) {
+  bool _filterMeal(Meal meal, Map<Filter, bool>filters) {
     if (filters[Filter.glutenFree]!) {
       return meal.isGlutenFree;
     }
@@ -31,10 +32,11 @@ class CategoriesScreen extends StatelessWidget {
     return true;
   }
 
-  void _selectCategory(BuildContext context, Category category) {
-    final filteredMeals = dummyMeals
+  void _selectCategory(
+      BuildContext context, Category category, List<Meal> meals,  Map<Filter, bool>filters) {
+    final filteredMeals = meals
         .where(
-          (meal) => meal.categories.contains(category.id) && _filterMeal(meal),
+          (meal) => meal.categories.contains(category.id) && _filterMeal(meal, filters),
         )
         .toList();
     Navigator.of(context).push(
@@ -42,14 +44,15 @@ class CategoriesScreen extends StatelessWidget {
         builder: (ctx) => MealsScreen(
           title: category.title,
           meals: filteredMeals,
-          onToggleFavorite: onToggleFavorite,
         ),
       ),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final filters = ref.watch(filtersProvider);
+    final meals = ref.watch(mealsProvider);
     return GridView(
       padding: const EdgeInsets.all(24),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -66,7 +69,7 @@ class CategoriesScreen extends StatelessWidget {
           (category) => CategoryGridItem(
             category: category,
             onSelectCategory: () {
-              _selectCategory(context, category);
+              _selectCategory(context, category, meals, filters);
             },
           ),
         )
